@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+
+    <title>adaptive tracing</title>
+    <style type="text/css">
+        * {
+            margin: 0px;
+            padding: 0px;
+        }
+
+        #CSConsole {
+            background-color: #FAFAFA;
+            border-top: 1px solid #333333;
+            bottom: 0px;
+            height: 200px;
+            overflow-y: scroll;
+            position: fixed;
+            width: 100%;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cindyprod.shnei.de/CindyJS.css">
+    <script type="text/javascript" src="https://cindyprod.shnei.de/Cindy.js"></script>
+<script id="csinit" type="text/x-cindyscript">
+verbosity = 0; // 3,2,1,0
+print("Initialized cindy script with verbosity: "+verbosity+newline);
+
+moveoncurve(d) := ((Mover.xy = [Mover.x+d, Mover.y+d*Line.slope]);t=t+d/delt);
+closeEnough(a,b) := |a-b|<eps;
+
+verbprint(verb,string) := if(verbosity>=verb,print("CS: "+string+newline));
+verbprint(string):=verbprint(0,string);
+
+eps = 0.2;
+delt = 1;
+yax=0.1;
+
+trace = [];
+
+drawTrace() := (
+  forall(trace,pt,draw([pt_1,pt_2],size->pt_3,color->pt_4););
+);
+
+saveTrace(col,size) := (
+  trace = append(trace, [Tracer.x,Tracer.y,size,col]);
+  trace = append(trace, [Mover.x,Mover.y-steps*yax*eps,size,col]);
+	//draw(Tracer,size->size,color->col);
+	//draw([Mover.x,Mover.y-steps*yax],size->size,color->col);
+	verbprint(3,"Drawing Trace at t="+t+", step="+steps);
+);
+
+step(uturns,denom,missing) := (
+assert(missing>=0,"! missing is negative: "+missing);
+assert(denom>=0,"! denominator is negative: "+denom);
+
+timeout = timeout-1;
+if(missing!=0 & timeout>0,
+	steps = steps+1;
+	ix = Tracer.x;
+	iy = Tracer.y;
+	direction = if(mod(uturns,2)==0,1,-1);
+	d = mult(direction/denom,delt);
+	moveoncurve(d);
+	if(!closeEnough(Tracer,[ix,iy]),
+		moveoncurve(-d);
+		//need to unwind detours in case we accidentally have walked over singularity.
+		moveoncurve(d);
+		moveoncurve(-d);
+
+
+		verbprint(3,"Refining denom: "+denom+"->"+denom*2+" missing: "+missing+"->"+missing*2);
+		uturns = step(uturns,denom*2,missing*2);
+	,
+		if(!(isreal(Tracer.x) & isreal(Tracer.y)), // complex Tracer?
+			saveTrace([1,1,0],4);
+			moveoncurve(-d);
+			saveTrace(if(d>0,[0,0.8,0],[0,0,0.8]),2);
+			verbprint(0,"walked into complex tracer after "+steps+" steps at time t="+t+" and "+uturns+" uturns.");
+      uturns = uturns+1;
+			uturns = step(uturns, denom, denom-missing);
+		,	//just continue walking on the Path
+			saveTrace(if(d<0,[0,0.8,0],[0,0,0.8]),2);
+			missing = missing-1;
+
+			if(mod(missing,2)==0 & denom>1,
+				verbprint(3,"Coarsening denom: "+denom+"->"+denom/2+" missing: "+missing+"->"+missing/2);
+				missing = missing/2;denom=denom/2;
+			);
+			uturns = step(uturns,denom,missing);
+		);
+	);
+);
+uturns;
+);
+
+calculateLocus(Mover,Tracer) := (
+trace = [];
+if(isreal(Tracer.x) & isreal(Tracer.y),
+	sx = Tracer.x;
+	sy = Tracer.y;
+	timeout = 1000;
+	steps = 0;
+	t=0;
+	direction = 1;
+	uturns = step(0,1,1);
+	//print("reached end of first step"+newline);
+	while(!(sx~=Tracer.x & sy~=Tracer.y & mod(uturns,2)==0 & t~=0) & 0< timeout,
+		if(sx~=Tracer.x & sy~=Tracer.y & t~=0 & mod(uturns,2)!=0, verbprint(0,"! arrived with odd number of uturns: "+uturns));
+		uturns = step(uturns,1,1);
+		saveTrace([1,0,0],3);
+	);
+
+  assert(timeout>0,"! timeout");
+	verbprint(1,"drawn locus in "+steps+" steps with "+uturns+" uturns.");
+);
+);
+calculateLocus(Mover,Tracer);
+</script>
+<script id="csmouseup" type="text/x-cindyscript">
+  verbprint(0,"mouse up - toggeling recalculation");
+  calculateLocus(Mover,Tracer);
+</script>
+<script id="csdraw" type="text/x-cindyscript">
+  drawTrace();
+</script>
+    <script type="text/javascript">
+var cdy = CindyJS({
+  scripts: "cs*",
+  defaultAppearance: {
+    dimDependent: 0.7,
+    fontFamily: "sans-serif",
+    lineSize: 1,
+    pointSize: 5.0,
+    textsize: 12.0
+  },
+  angleUnit: "°",
+  geometry: [
+    {name: "A", type: "Free", pos: [-3, -3.9, 0.280742459396752], color: [1.0, 0.0, 0.0], labeled: true},
+    {name: "B", type: "Free", pos: [1, -3.9, 0.2824858757062147], color: [1.0, 0.0, 0.0], labeled: true},
+    {name: "Line", type: "Join", color: [0.0, 0.0, 1.0], args: ["A", "B"], labeled: true},
+    {name: "Mover", type: "PointOnLine", pos: [-0.49711583777035373, -4.0, 0.28186432557897695], color: [1.0, 0.0, 0.0], args: ["Line"], labeled: true},
+    {name: "a", type: "Orthogonal", color: [0.0, 0.0, 1.0], args: ["Line", "Mover"], labeled: true},
+    {name: "C", type: "Free", pos: [-2.251406055369127, -4.0, 0.5240065378573537], color: [1.0, 0.0, 0.0], labeled: true},
+    {name: "C0", type: "CircleByRadius", pos: {xx: 0.023552092210698955, yy: 0.023552092210698955, zz: 1.0, xy: 0.0, xz: 0.20238420397042584, yz: -0.3595694405951914}, color: [0.0, 0.0, 1.0], radius: 5.854164671411286, args: ["C"], printname: "$C_{0}$"},
+    {name: "D", type: "Free", pos: [3.0512726398461303, -4.0, 0.5333386760698843], color: [1.0, 0.0, 0.0], labeled: true},
+    {name: "C1", type: "CircleByRadius", pos: {xx: 0.015248014596870077, yy: 0.015248014596870077, zz: 1.0, xy: 0.0, xz: -0.1744701887897878, yz: -0.22871792774124042}, color: [0.0, 0.0, 1.0], radius: 4.8370763897213775, args: ["D"], printname: "$C_{1}$"},
+    {name: "Collection__1", type: "IntersectionConicLine", args: ["C0", "a"]},
+    {name: "E", type: "SelectP", pos: [-3.14452726422577, -4.0, 1.720243506418492], color: [1.0, 0.0, 0.0], args: ["Collection__1"], labeled: true},
+    {name: "b", type: "Segment", color: [0.0, 0.0, 1.0], args: ["C", "E"]},
+    {name: "C2", type: "CircleByRadius", pos: {xx: -0.03838216608400858, yy: -0.03838216608400858, zz: 0.9999999999999999, xy: 0.0, xz: -0.14032172452432423, yz: 0.1784964323518099}, color: [0.0, 0.0, 1.0], radius: 5.899320554097734, args: ["E"], printname: "$C_{2}$"},
+    {name: "Collection__2", type: "IntersectionCircleCircle", args: ["C1", "C2"]},
+    {name: "F", type: "SelectP", pos: [4.0, -2.938846869155156, 0.9909569977398515], color: [1.0, 0.0, 0.0], args: ["Collection__2"], labeled: true},
+    {name: "Tracer", type: "Mid", color: [1.0, 0.0, 0.0], args: ["E", "F"], labeled: true},
+    {name: "e", type: "Segment", color: [0.0, 0.0, 1.0], args: ["E", "F"]},
+    {name: "c", type: "Segment", color: [0.0, 0.0, 1.0], args: ["F", "D"]}
+  ],
+  ports: [{
+    id: "CSCanvas",
+    width: 524,
+    height: 636,
+    transform: [{visibleRect: [-11.768921111945888, 5.898075131480084, 11.287078888054074, -22.085924868519868]}],
+    background: "rgb(168,176,192)"
+  }],
+  csconsole: false,
+  use: ["katex"],
+  cinderella: {build: 2008, version: [3, 0, 2008]}
+});
+    </script>
+</head>
+<body>
+    <div id="CSCanvas"></div>
+</body>
+</html>
