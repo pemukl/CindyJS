@@ -114,7 +114,10 @@ function requestRefinement() {
     // Possible outcomes: either an exception will be thrown to
     // request more refinements, or the tracingFailed flag will be set
     // and the function returns normally.
-    if (noMoreRefinements) tracingFailed = true;
+    if (noMoreRefinements){
+      tracingFailed = true;
+      console.log("Tracing failed. No more Refinements was set.");
+    }
     else throw RefineException;
 }
 
@@ -404,7 +407,10 @@ function tracing2core(n1, n2, o1, o2) {
     }
 
     var debug = function () {};
-    // debug = console.log.bind(console);
+    debug = console.log.bind(console);
+    //debug("Can anyone hear me debugging?");
+    //console.log("Shoud have talked about debugging...");
+
     if (traceLog && traceLog.currentStep) {
         var logRow = [
             traceLog.labelTracing2, //                        1
@@ -437,7 +443,7 @@ function tracing2core(n1, n2, o1, o2) {
     } else if (do1o2 > cost * safety && dn1n2 > cost * safety) {
         // Distance within matching considerably smaller than distance
         // across matching, so we could probably match correctly.
-        debug("Normal case, everything all right.");
+        //debug("Normal case, everything all right.");
     } else if (dn1n2 < 1e-5) {
         // New points too close: we presumably are inside a singularity.
         if (do1o2 < 1e-5) {
@@ -462,7 +468,7 @@ function tracing2core(n1, n2, o1, o2) {
         // Neither old nor new position looks singular, so there was
         // an avoidable singularity along the way. Refine to avoid it.
         if (noMoreRefinements) debug("Reached refinement limit, giving up.");
-        else debug("Need to refine.");
+        //else debug("Need to refine.");
         requestRefinement();
     }
     return res;
@@ -487,7 +493,8 @@ tracing4.stateSize = 24; // four three-element complex vectors
 
 function tracing4core(n1, n2, n3, n4, o1, o2, o3, o4) {
     var debug = function () {};
-    // var debug = console.log.bind(console);
+    //var debug = function (message) {console.log(message)};
+    //var debug = console.log.bind(console);
 
     var useGreedy = false; // greedy or permutation?
     var safety;

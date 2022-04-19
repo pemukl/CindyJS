@@ -39,11 +39,11 @@ module.exports = function watch(makeOnce, doClean) {
     bs.init(
         {
             server: {
-                baseDir: ".",
+                baseDir: "./examples/marc/",
                 directory: true,
             },
             port: 1337,
-            startPath: "/examples/",
+            startPath: "/",
             files: watchToReload,
             watchOptions: {
                 ignored: ignored,
