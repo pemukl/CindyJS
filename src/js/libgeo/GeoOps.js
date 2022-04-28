@@ -3661,4 +3661,12 @@ geoMacros.TrCompose = function (el) {
     }
 };
 
+geoOps.Locus = {};
+geoOps.Locus.kind = "Poly";
+geoOps.Locus.signature = ["P","P"];
+geoOps.Locus.updatePosition = function (el) {
+    el.vertices = List.turnIntoCSList([csgeo.csnames[el.args[0]].homog,csgeo.csnames[el.args[1]].homog]);
+};
+
+
 export { noop, geoOps, geoAliases, geoMacros, ifs };
