@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
 
-    <title>adaptive tracing 3</title>
+    <title>different speeds</title>
     <style type="text/css">
         * {
             margin: 0px;
@@ -26,37 +26,39 @@
 verbosity = 0; // 3,2,1,0
 print("Initialized cindy script with verbosity: "+verbosity+newline);
 
-moveoncurve(d) := ((Mover.xy = [Mover.x+d, Mover.y+d*Line.slope]);t=t+d/delt);
+moveoncurve(d) := ((Mover.xy = [Mover.x+d, Mover.y+d*Line.slope]););
 closeEnough(a,b) := |a-b|<eps;
 
 verbprint(verb,string) := if(verbosity>=verb,print("CS: "+string+newline));
 verbprint(string):=verbprint(0,string);
 
-eps = 0.2;
-delt = 1;
-yax=0.06;
+eps = 0.01;
+delt = 0.1;
 
 trace = [];
+points = [];
+uturns = 0;
 
 drawTrace() := (
-  forall(trace,pt,draw([pt_1,pt_2],size->pt_3,color->pt_4););
+  pts = [];
+  forall(trace,pt,
+    pts = append(pts,[pt_1,pt_2]);
+  );
+  connect(pts,color->[0.7,0.1,0],size->6);
+  forall(points,pt,draw([pt_1,pt_2],size->pt_3,color->pt_4););
 );
+
 
 saveTrace(col,size) := (
   trace = append(trace, [Tracer.x,Tracer.y,size,col]);
-  trace = append(trace, [Mover.x,Mover.y-steps*yax*eps,size,col]);
-	//draw(Tracer,size->size,color->col);
-	//draw([Mover.x,Mover.y-steps*yax],size->size,color->col);
-	verbprint(3,"Drawing Trace at t="+t+", step="+steps);
 );
 
 step(uturns,denom,missing) := (
+
 assert(missing>=0,"! missing is negative: "+missing);
 assert(denom>=0,"! denominator is negative: "+denom);
 
-timeout = timeout-1;
-if(missing!=0 & timeout>0,
-	steps = steps+1;
+if(missing!=0 ,
 	ix = Tracer.x;
 	iy = Tracer.y;
 	direction = if(mod(uturns,2)==0,1,-1);
@@ -73,10 +75,10 @@ if(missing!=0 & timeout>0,
 		uturns = step(uturns,denom*2,missing*2);
 	,
 		if(!(isreal(Tracer.x) & isreal(Tracer.y)), // complex Tracer?
-			saveTrace([1,1,0],4);
+      points = append(points, [Tracer.x,Tracer.y,4,[1,1,0]]);
 			moveoncurve(-d);
 			saveTrace(if(d>0,[0,0.8,0],[0,0,0.8]),2);
-			verbprint(2,"walked into complex tracer after "+steps+" steps at time t="+t+" and "+uturns+" uturns.");
+			verbprint(2,"walked into complex tracer after "+uturns+" uturns.");
       uturns = uturns+1;
 			uturns = step(uturns, denom, denom-missing);
 		,	//just continue walking on the Path
@@ -94,36 +96,33 @@ if(missing!=0 & timeout>0,
 uturns;
 );
 
-calculateLocus(Mover,Tracer) := (
-trace = [];
-if(isreal(Tracer.x) & isreal(Tracer.y),
-	sx = Tracer.x;
-	sy = Tracer.y;
-	timeout = 1000;
-	steps = 0;
-	t=0;
-	direction = 1;
-	uturns = step(0,1,1);
-	//print("reached end of first step"+newline);
-	while(!(sx~=Tracer.x & sy~=Tracer.y & mod(uturns,2)==0 & t~=0) & 0< timeout,
-		if(sx~=Tracer.x & sy~=Tracer.y & t~=0 & mod(uturns,2)!=0, verbprint(1,"! arrived with odd number of uturns: "+uturns));
-		uturns = step(uturns,1,1);
-		saveTrace([1,0,0],3);
-	);
 
-  assert(timeout>0,"! timeout");
-	verbprint(0,"Calculated locus in "+steps+" steps with "+uturns+" uturns.");
+startLocus(Mover,Tracer) := (
+if(isreal(Tracer.x) & isreal(Tracer.y),
+  points = [];
+  trace = [];
 );
 );
-calculateLocus(Mover,Tracer);
+
+updateLocus() := (
+  uturns = step(uturns,1,1);
+);
+startLocus(Mover,Tracer);
 </script>
 <script id="csmousedrag" type="text/x-cindyscript">
-  verbprint(0,"mouse up - toggeling recalculation");
-  calculateLocus(Mover,Tracer);
+  if(mover()!=Mover, startLocus(Mover,Tracer););
 </script>
+
+<script id="cskeydown" type="text/x-cindyscript">
+  if(key()=="S",eps = 0.009; delt = 0.4;);
+  if(key()=="F",eps = 0.3; delt = 0.6;);
+  if(key()==" ",startLocus(Mover,Tracer);,updateLocus(););
+</script>
+
 <script id="csdraw" type="text/x-cindyscript">
   drawTrace();
 </script>
+
     <script type="text/javascript">
 var cdy = CindyJS({
   scripts: "cs*",
@@ -140,7 +139,7 @@ var cdy = CindyJS({
     {name: "B", type: "Free", pos: [1, -3.5, 0.280742459396752], color: [1.0, 0.0, 0.0], labeled: true},
     {name: "Line", type: "Join", color: [0.0, 0.0, 1.0], args: ["A", "B"], labeled: true},
     {name: "Mover", type: "PointOnLine", pos: [-1.5, -4.0, 0.280742459396752], color: [1.0, 0.0, 0.0], args: ["Line"], labeled: true},
-    {name: "C", type: "Free", pos: [-2, -1, 0.280742459396752], color: [1.0, 0.0, 0.0], labeled: true},
+    {name: "C", type: "Free", pos: [-1.5, -2, 0.280742459396752], color: [1.0, 0.0, 0.0], labeled: true},
     {name: "C0", type: "CircleByRadius", pos: {xx: 0.011146616584864445, yy: 0.011146616584864445, zz: 1.0, xy: 0.0, xz: 0.128232151125052, yz: -0.18940036114447334}, color: [0.0, 0.0, 1.0], radius: 3.94369268579589, args: ["C"], visible: false, printname: "$C_{0}$"},
     {name: "a", type: "Orthogonal", color: [0.0, 0.0, 1.0], args: ["Line", "Mover"], visible: false, labeled: true},
     {name: "Collection__1", type: "IntersectionConicLine", args: ["C0", "a"]},

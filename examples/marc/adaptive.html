@@ -32,9 +32,9 @@ closeEnough(a,b) := |a-b|<eps;
 verbprint(verb,string) := if(verbosity>=verb,print("CS: "+string+newline));
 verbprint(string):=verbprint(0,string);
 
-eps = 0.2;
+eps = 0.3;
 delt = 1;
-yax=0.1;
+yax=0.08;
 
 trace = [];
 
@@ -48,6 +48,15 @@ saveTrace(col,size) := (
 	//draw(Tracer,size->size,color->col);
 	//draw([Mover.x,Mover.y-steps*yax],size->size,color->col);
 	verbprint(3,"Drawing Trace at t="+t+", step="+steps);
+);
+
+getcolorfromdenom(denom,missing) := (
+  if(denom>0,
+       [0,0.8,0];
+    ,
+       invcol = getcolorfromdenom(-denom,missing);
+       [invcol_1,invcol_3,invcol_2];
+     );
 );
 
 step(uturns,denom,missing) := (
@@ -75,12 +84,12 @@ if(missing!=0 & timeout>0,
 		if(!(isreal(Tracer.x) & isreal(Tracer.y)), // complex Tracer?
 			saveTrace([1,1,0],4);
 			moveoncurve(-d);
-			saveTrace(if(d>0,[0,0.8,0],[0,0,0.8]),2);
-			verbprint(0,"walked into complex tracer after "+steps+" steps at time t="+t+" and "+uturns+" uturns.");
+			saveTrace(getcolorfromdenom(-denom*direction,missing),2);
+			verbprint(2,"walked into complex tracer after "+steps+" steps at time t="+t+" and "+uturns+" uturns.");
       uturns = uturns+1;
 			uturns = step(uturns, denom, denom-missing);
 		,	//just continue walking on the Path
-			saveTrace(if(d<0,[0,0.8,0],[0,0,0.8]),2);
+			saveTrace(getcolorfromdenom(denom*direction,missing),2);
 			missing = missing-1;
 
 			if(mod(missing,2)==0 & denom>1,
@@ -108,7 +117,6 @@ if(isreal(Tracer.x) & isreal(Tracer.y),
 	while(!(sx~=Tracer.x & sy~=Tracer.y & mod(uturns,2)==0 & t~=0) & 0< timeout,
 		if(sx~=Tracer.x & sy~=Tracer.y & t~=0 & mod(uturns,2)!=0, verbprint(0,"! arrived with odd number of uturns: "+uturns));
 		uturns = step(uturns,1,1);
-		saveTrace([1,0,0],3);
 	);
 
   assert(timeout>0,"! timeout");
@@ -117,8 +125,8 @@ if(isreal(Tracer.x) & isreal(Tracer.y),
 );
 calculateLocus(Mover,Tracer);
 </script>
-<script id="csmouseup" type="text/x-cindyscript">
-  verbprint(0,"mouse up - toggeling recalculation");
+<script id="csmousedrag" type="text/x-cindyscript">
+  verbprint(1,"mouse up - toggeling recalculation");
   calculateLocus(Mover,Tracer);
 </script>
 <script id="csdraw" type="text/x-cindyscript">

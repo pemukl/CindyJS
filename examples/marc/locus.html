@@ -36,9 +36,9 @@ var cdy = CindyJS({
   geometry: [
     {name: "A", type: "Free", pos: [-3, -3.9, 0.280742459396752], color: [1.0, 0.0, 0.0], labeled: true},
     {name: "B", type: "Free", pos: [1, -3.9, 0.2824858757062147], color: [1.0, 0.0, 0.0], labeled: true},
-    {name: "Line", type: "Join", color: [0.0, 0.0, 1.0], args: ["A", "B"], labeled: true},
-    {name: "Mover", type: "PointOnLine", pos: [-0.49711583777035373, -4.0, 0.28186432557897695], color: [1.0, 0.0, 0.0], args: ["Line"], labeled: true},
-    {name: "a", type: "Orthogonal", color: [0.0, 0.0, 1.0], args: ["Line", "Mover"], labeled: true},
+    {name: "Path", type: "Join", color: [0.0, 0.0, 1.0], args: ["A", "B"], labeled: true},
+    {name: "Mover", type: "PointOnLine", pos: [-0.49711583777035373, -4.0, 0.28186432557897695], color: [1.0, 0.0, 0.0], args: ["Path"], labeled: true},
+    {name: "a", type: "Orthogonal", color: [0.0, 0.0, 1.0], args: ["Path", "Mover"], labeled: true},
     {name: "C", type: "Free", pos: [-2.251406055369127, -4.0, 0.5240065378573537], color: [1.0, 0.0, 0.0], labeled: true},
     {name: "C0", type: "CircleByRadius", pos: {xx: 0.023552092210698955, yy: 0.023552092210698955, zz: 1.0, xy: 0.0, xz: 0.20238420397042584, yz: -0.3595694405951914}, color: [0.0, 0.0, 1.0], radius: 5.854164671411286, args: ["C"], printname: "$C_{0}$"},
     {name: "D", type: "Free", pos: [3.0512726398461303, -4.0, 0.5333386760698843], color: [1.0, 0.0, 0.0], labeled: true},
@@ -52,7 +52,7 @@ var cdy = CindyJS({
     {name: "Tracer", type: "Mid", color: [1.0, 0.0, 0.0], args: ["E", "F"], labeled: true},
     {name: "e", type: "Segment", color: [0.0, 0.0, 1.0], args: ["E", "F"]},
     {name: "c", type: "Segment", color: [0.0, 0.0, 1.0], args: ["F", "D"]},
-    {name: "Locus", type: "Locus", color: [0.7,0.1,0.0], args: ["Mover", "Tracer"],size:6}
+    //{name: "Locus", type: "Locus", color: [0.7,0.1,0.0], args: ["Mover", "Tracer"],size:6}
   ],
   ports: [{
     id: "CSCanvas",
@@ -68,6 +68,9 @@ var cdy = CindyJS({
     </script>
 </head>
 <body>
+    <script id="csinit" type="text/x-cindyscript">
+        createtool([["Move","Locus"]], 10, 20,reference->"LU");
+    </script>
     <div id="CSCanvas"></div>
 </body>
 </html>
