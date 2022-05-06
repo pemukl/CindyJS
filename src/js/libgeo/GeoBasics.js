@@ -253,7 +253,7 @@ function addElementNoProof(el) {
             });
         } else if (op.signature.length !== (el.args ? el.args.length : 0)) {
             console.error("Wrong number of arguments for " + el.name + " of type " + el.type);
-            if (typeof window !== "undefined") window.alert("Wrong number of arguments for " + el.name);
+            if (typeof window !== "undefined") window.alert("Wrong number of arguments for " + el.name + " ("+ el.type+")");
             return null;
         }
     }
@@ -521,7 +521,7 @@ function isShowing(el, op) {
         }
     }
     /*    if (el.kind==="P" ||el.kind==="L"){
-        
+
             if(!List.helper.isAlmostReal(el.homog)){
                 el.isshowing=false;
                 return;

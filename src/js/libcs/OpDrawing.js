@@ -813,6 +813,9 @@ evaluator.fillpolygon$1 = function (args, modifs) {
     return eval_helper.drawpolygon(args, modifs, "F", true);
 };
 
+
+
+
 eval_helper.drawpolygon = function (args, modifs, df, cycle) {
     Render2D.handleModifs(modifs, cycle ? Render2D.conicModifs : Render2D.lineModifs);
     Render2D.preDrawCurve();
@@ -820,6 +823,7 @@ eval_helper.drawpolygon = function (args, modifs, df, cycle) {
     var m = csport.drawingstate.matrix;
 
     function drawpolyshape() {
+      console.log("drawpolyshape")
         var polys = v0.value;
         for (var j = 0; j < polys.length; j++) {
             var pol = polys[j];
@@ -850,14 +854,36 @@ eval_helper.drawpolygon = function (args, modifs, df, cycle) {
         if (cycle) csctx.closePath();
     }
 
+    function drawbezier() {
+      console.log("drawing bezier")
+        var i;
+        for (i = 0; i < v0.value.length; i++) {
+            var pt = eval_helper.extractPoint(v0.value[i]);
+            if (!pt.ok) {
+                return;
+            }
+            var xx = pt.x * m.a - pt.y * m.b + m.tx;
+            var yy = pt.x * m.c - pt.y * m.d - m.ty;
+            if (i === 0) csctx.moveTo(xx, yy);
+            else csctx.lineTo(xx, yy);
+        }
+        if (cycle) csctx.closePath();
+    }
+
     var v0 = evaluate(args[0]);
 
     csctx.beginPath();
-    if (v0.ctype === "list") {
-        drawpoly();
-    }
-    if (v0.ctype === "shape") {
-        drawpolyshape();
+
+    if (df === "B") {
+        drawbezier();
+        csctx.clip();
+    } else {
+      if (v0.ctype === "list") {
+          drawpoly();
+      }
+      if (v0.ctype === "shape") {
+          drawpolyshape();
+      }
     }
 
     if (df === "D") {
@@ -874,6 +900,7 @@ eval_helper.drawpolygon = function (args, modifs, df, cycle) {
     if (df === "C") {
         csctx.clip();
     }
+
 
     return nada;
 };

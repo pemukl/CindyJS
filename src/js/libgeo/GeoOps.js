@@ -528,6 +528,7 @@ geoOps.PointOnLine.updatePosition = function (el, isMover) {
 geoOps.PointOnLine.getParamForInput = function (el, pos, type) {
     var line = csgeo.csnames[el.args[0]].homog;
     pos = geoOps._helper.projectPointToLine(pos, line);
+
     if (type === "mouse" && cssnap && csgridsize !== 0) {
         pos = geoOps._helper.snapPointToLine(pos, line);
     }
@@ -3663,10 +3664,58 @@ geoMacros.TrCompose = function (el) {
 
 geoOps.Locus = {};
 geoOps.Locus.kind = "Poly";
-geoOps.Locus.signature = ["P","P"];
-geoOps.Locus.updatePosition = function (el) {
-    el.vertices = List.turnIntoCSList([csgeo.csnames[el.args[0]].homog,csgeo.csnames[el.args[1]].homog]);
+geoOps.Locus.signature = ["P","L","P"];
+geoOps.Locus.initialize = function (el) {
+  var mover = csgeo.csnames[el.args[0]];
+  var tracer = csgeo.csnames[el.args[2]];
+  var path = csgeo.csnames[el.args[1]];
+  var locus = [tracer.homog];
+  var start = mover.homog;
+  var dir = List.cross(start,path.homog);
+  dir = List.normalizeMax(dir);
+  console.log(dir);
+  var fact = {
+      ctype: "number",
+      value: {
+          real: 0.001,
+          imag: 0,
+      },
+  };
+  var minusone = {
+      ctype: "number",
+      value: {
+          real: -1,
+          imag: 0,
+      },
+  };
+  dir = List.scalmult(fact,dir);
+  console.log(dir);
+  var pt = start;
+
+  for (var i = 0; i < 1000; ++i ){
+    pt = List.add(pt,dir);
+    pt = List.normalizeMax(pt);
+    movepointscr(mover, pt, "homog");
+    if(tracer.homog.value[0].value.imag >0 || tracer.homog.value[1].value.imag >0 || tracer.homog.value[2].value.imag >0) {
+      console.log("changed dir.");
+      dir = List.scalmult(minusone,dir);
+      pt = List.add(pt,dir);
+      movepointscr(mover, pt, "homog");
+    } else {
+      locus.push(tracer.homog);
+    }
+  }
+  console.log(locus);
+
+  el.vertices = List.turnIntoCSList(locus);
 };
+geoOps.Locus.updatePosition = function (el) {
+};
+
+//geoOps.Locus.updatePosition = function (el) {
+//  for (var i = 0; i < 3; ++i) ;
+//    el.vertices = List.turnIntoCSList([csgeo.csnames[el.args[0]].homog,csgeo.csnames[el.args[2]].homog,csgeo.csnames["B"].homog]);
+//};
 
 
 export { noop, geoOps, geoAliases, geoMacros, ifs };

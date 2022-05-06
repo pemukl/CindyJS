@@ -26,11 +26,8 @@ function getElementAtMouse(mouse) {
     var adist = 1000000;
     var diff;
 
-    console.log("getElementAtMouse");
-
     for (var i = 0; i < csgeo.gslp.length; i++) {
         var el = csgeo.gslp[i];
-
         if (el.pinned || el.visible === false || el.tmp === true) continue;
 
         var dx, dy, dist;
@@ -676,5 +673,43 @@ tools.Intersection.actions[1].do = function () {
 
     return false;
 };
+
+// Mid
+tools.Locus = {};
+tools.Locus.actions = [];
+tools.Locus.actions[0] = {};
+tools.Locus.actions[0].event = "mousedown";
+tools.Locus.actions[0].tooltip = "Choose Mover";
+tools.Locus.actions[0].do = function () {
+    grabPoint();
+    return true;
+};
+
+// Mid
+tools.Locus.actions[1] = {};
+tools.Locus.actions[1].event = "mousedown";
+tools.Locus.actions[1].tooltip = "Choose Path";
+tools.Locus.actions[1].do = function () {
+    var line = csgeo.csnames[elements[0].args[0]];
+    console.log(line.homog);
+    elements[idx] = line;
+    idx++;
+    grabPoint();
+    console.log("Constucting locus of "+elements[2].name+" with "+elements[0].name+" moving on " + elements[1].name);
+
+    element = addElement({
+        type: "Locus",
+        name: "L"+getNextFreeName(),
+        labeled: true,
+        color: [1.0, 0.0, 0.0],
+        args: [elements[0].name, elements[1].name,elements[2].name],
+    });
+
+    return true;
+};
+
+
+
+
 
 export { manage, tools, setActiveTool };
